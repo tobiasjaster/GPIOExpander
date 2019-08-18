@@ -16,9 +16,9 @@
  */
 #include "ExpPortOut.h"
 
-#if DEVICE_EXPANDER
+#if DEVICE_EXPANSION
 
-ExpPortOut::ExpPortOut(ExpanderInterface *exp, ExpPortName port, int mask) {
+ExpPortOut::ExpPortOut(GPIOExpansionInterface *exp, ExpPortName port, int mask) {
 	_exp = exp;
 	_port = port;
 	_mask = mask;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 #include "mbed.h"
-#include "ExpanderInterface.h"
+#include "GPIOExpansionInterface.h"
 #include <list>
 
 #ifndef  MCP23S17_H
@@ -73,7 +73,7 @@ typedef struct {
  * @note Synchronization level: Interrupt safe
  *
  */
-class MCP23S17 : public ExpanderInterface {
+class MCP23S17 : public GPIOExpansionInterface {
 
 public:
 
@@ -103,7 +103,7 @@ public:
 	 *  @param interrupt 		Interrupt pin for interruptControl
 	 *  @param pw 					ExpPortWidth for configurating PortWidth parameter
 	 */
-	 MCP23S17(SPI *spi,
+	 MCP23S17(mbed::SPI *spi,
 		 PinName cs,
 		 char writeOpcode,
 		 PinName interrupt = NC,
@@ -141,27 +141,29 @@ public:
  	  */
 	 ExpError setDirection(ExpPortName port, int directionMask);
 
-	 /** Get the PullUp register of expected port
- 	  *
- 	  *  Provide port register to pointer destination.
- 	  *  For ErrorHandling function returns typdef enum ExpError
- 	  *
- 	  *  @param port		Typdef Enum of ExpPortName for selecting port register
- 	  *  @param data		int-pointer to write data throw
- 	  *  @return				Typedef Enum of ExpPortWidth
- 	  */
-	 ExpError getConfigurePullUps(ExpPortName port, int *data);
+		/** Get the PullUp register of expected port
+		 *
+		 *  Provide port register to pointer destination.
+		 *  For ErrorHandling function returns typdef enum ExpError
+		 *
+		 *  @param port		Typdef Enum of ExpPortName for selecting port register
+		 *  @param mode		PinMode param to select, which mode register should be read
+		 *  @param data		int-pointer to write data throw
+		 *  @return				Typedef Enum of ExpPortWidth
+		*/
+	 ExpError getConfigureMode(ExpPortName port, PinMode mode, int *data);
 
-	 /** Set the Pullup register of expected port
-	  *
-	 	*  Used to write port register to set pullup.
-	 	*  For ErrorHandling function returns typdef enum ExpError
-	 	*
-	 	*  @param port							Typdef Enum of ExpPortName for selecting port register
-	 	*  @param pullupMask				int to write pullup configuration to port
-	 	*  @return									Typedef Enum of ExpPortWidth
-	 	*/
-	 ExpError setConfigurePullUps(ExpPortName port, int pullupMask);
+		/** Set the Pullup register of expected port
+		 *
+		 *  Used to write port register to set pullup.
+		 *  For ErrorHandling function returns typdef enum ExpError
+		 *
+		 *  @param port		Typdef Enum of ExpPortName for selecting port register
+		 *  @param mode		PinMode param to select, which mode register should be changed
+		 *  @param mask		int to write pullup configuration to port
+		 *  @return			Typedef Enum of ExpPortWidth
+		 */
+	 ExpError setConfigureMode(ExpPortName port, PinMode mode, int pullupMask);
 
 	 /** Get the Interrupt controlling register of expected port
  	  *
@@ -262,12 +264,11 @@ protected:
     void _threadControl(void);
     void _interruptControl(void);
     std::list<expGPIO_t>::iterator _getExpGPIO(ExpPortName port, ExpPinName pin);
-
-		Thread _intThread;
-		volatile bool _threadrunning;
-		volatile bool _interrupt;
-		expObj_t _config;
-		SPI* _spi;
+    Thread _intThread;
+	volatile bool _threadrunning;
+	volatile bool _interrupt;
+	expObj_t _config;
+	mbed::SPI* _spi;
     DigitalOut _cs;
     InterruptIn _int;
     std::list<expGPIO_t> _intList;

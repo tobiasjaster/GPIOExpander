@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef EXPANDERINTERFACE_H
-#define EXPANDERINTERFACE_H
+#ifndef MBED_GPIOEXPANSIONINTERFACE_H
+#define MBED_GPIOEXPANSIONINTERFACE_H
 
-/** @file ExpanderInterface.h Expander Interface base class */
-/** @addtogroup netinterface
- * Network Interface classes
- * @{ */
+#define DEVICE_EXPANSION 1
+
+#include "platform/platform.h"
+#include "platform/Callback.h"
+
+/** @file ExpansionInterface.h Expander Interface base class */
 
  /** typedef enum for Expansion Port
   *
@@ -63,11 +65,11 @@ typedef enum {
  *  Has the ability to control 32bit width GPIO ports
  */
 typedef enum {
-  EXPPIN_0  = 0x00, EXPPIN_1  = 0x01, EXPPIN_2  = 0x02, EXPPIN_3  = 0x03,
+	EXPPIN_0  = 0x00, EXPPIN_1  = 0x01, EXPPIN_2  = 0x02, EXPPIN_3  = 0x03,
 	EXPPIN_4  = 0x04, EXPPIN_5  = 0x05, EXPPIN_6  = 0x06, EXPPIN_7  = 0x07,
 	EXPPIN_8  = 0x08, EXPPIN_9  = 0x09, EXPPIN_10 = 0x0A, EXPPIN_11 = 0x0B,
 	EXPPIN_12 = 0x0C, EXPPIN_13 = 0x0D, EXPPIN_14 = 0x0E, EXPPIN_15 = 0x0F,
-  EXPPIN_16 = 0x10, EXPPIN_17 = 0x11, EXPPIN_18 = 0x12, EXPPIN_19 = 0x03,
+	EXPPIN_16 = 0x10, EXPPIN_17 = 0x11, EXPPIN_18 = 0x12, EXPPIN_19 = 0x03,
 	EXPPIN_20 = 0x14, EXPPIN_21 = 0x15, EXPPIN_22 = 0x16, EXPPIN_23 = 0x07,
 	EXPPIN_24 = 0x18, EXPPIN_25 = 0x19, EXPPIN_26 = 0x1A, EXPPIN_27 = 0x0B,
 	EXPPIN_28 = 0x1C, EXPPIN_29 = 0x1D, EXPPIN_30 = 0x1E, EXPPIN_31 = 0x0F,
@@ -78,20 +80,18 @@ typedef enum {
  *
  */
 typedef enum {
-	ExpError_OK 						= 0x00,
-	ExpError_READ 					= 0x01,
-	ExpError_WRITE 					= 0x02,
+	ExpError_OK 			= 0x00,
+	ExpError_READ 			= 0x01,
+	ExpError_WRITE 			= 0x02,
 	ExpError_NOTINITIALIZED = 0x03,
-	ExpError_MASK 					= 0x04,
+	ExpError_MASK 			= 0x04,
 } ExpError;
 
 /** Common interface that is shared between Expansion Drivers.
  *
  */
-class ExpanderInterface {
+class GPIOExpansionInterface {
 public:
-
-	virtual ~ExpanderInterface() {};
 
 	/** Get the PortWidth of GPIOExpander
 	 *
@@ -100,9 +100,9 @@ public:
 	 *  @return				Typedef Enum of ExpPortWidth
 	 */
 	virtual ExpPortWidth getPortWidth(void)
-  {
+	{
 		return PW_8;
-  };
+	};
 
 	/** Get the direction register of expected port
 	 *
@@ -114,9 +114,9 @@ public:
 	 *  @return				Typedef Enum of ExpPortWidth
 	 */
 	virtual ExpError getDirection(ExpPortName port, int *data)
-  {
+	{
 		return ExpError_NOTINITIALIZED;
-  };
+	};
 
 	/** Set the direction register of expected port
 	 *
@@ -128,9 +128,9 @@ public:
 	 *  @return									Typedef Enum of ExpPortWidth
 	 */
 	virtual ExpError setDirection(ExpPortName port, int directionMask)
-  {
-  	return ExpError_NOTINITIALIZED;
-  };
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 
 	/** Get the PullUp register of expected port
 	 *
@@ -138,27 +138,29 @@ public:
 	 *  For ErrorHandling function returns typdef enum ExpError
 	 *
 	 *  @param port		Typdef Enum of ExpPortName for selecting port register
+	 *  @param mode		PinMode param to select, which mode register should be read
 	 *  @param data		int-pointer to write data throw
 	 *  @return				Typedef Enum of ExpPortWidth
 	*/
-	virtual ExpError getConfigurePullUps(ExpPortName port, int *data)
-  {
-  	return ExpError_NOTINITIALIZED;
-  };
+	virtual ExpError getConfigureMode(ExpPortName port, PinMode mode, int *data)
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 
 	/** Set the Pullup register of expected port
 	 *
 	 *  Used to write port register to set pullup.
 	 *  For ErrorHandling function returns typdef enum ExpError
 	 *
-	 *  @param port							Typdef Enum of ExpPortName for selecting port register
-	 *  @param pullupMask				int to write pullup configuration to port
-	 *  @return									Typedef Enum of ExpPortWidth
+	 *  @param port		Typdef Enum of ExpPortName for selecting port register
+	 *  @param mode		PinMode param to select, which mode register should be changed
+	 *  @param mask		int to write pullup configuration to port
+	 *  @return			Typedef Enum of ExpPortWidth
 	 */
-	virtual ExpError setConfigurePullUps(ExpPortName port, int pullupMask)
-  {
-    return ExpError_NOTINITIALIZED;
-  };
+	virtual ExpError setConfigureMode(ExpPortName port, PinMode mode, int modeMask)
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 
 	/** Get the Interrupt controlling register of expected port
 	 *
@@ -170,9 +172,9 @@ public:
 	 *  @return				Typedef Enum of ExpPortWidth
 	 */
 	virtual ExpError getInterruptEnable(ExpPortName port, int *data)
-  {
-    return ExpError_NOTINITIALIZED;
-  };
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 
 	/** Set the Interrupt register of expected port
 	 *
@@ -186,9 +188,9 @@ public:
 	 *  @return												Typedef Enum of ExpPortWidth
 	 */
 	virtual ExpError setInterruptEnable(ExpPortName port, int interruptsEnabledMask, int risingEdgeMask, int fallingEdgeMask)
-  {
-  	return ExpError_NOTINITIALIZED;
-  };
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 
 	/** Provide function for Interrupt execution
 	 *
@@ -206,9 +208,9 @@ public:
 	 *  @return				Typedef Enum of ExpPortWidth
 	 */
 	virtual ExpError read(ExpPortName port, int *data)
-  {
-    return ExpError_NOTINITIALIZED;
-  };
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 
 	/** Set the Ouput register of expected port
 	 *
@@ -220,9 +222,9 @@ public:
 	 *  @return				Typedef Enum of ExpPortWidth
 	 */
 	virtual ExpError write(ExpPortName port, int data)
-  {
-    return ExpError_NOTINITIALIZED;
-  };
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 
 	/** Attach selected pin of special port to internal list
 	 *
@@ -237,9 +239,9 @@ public:
 	 *  @return				Typedef Enum of ExpPortWidth
 	 */
 	virtual ExpError attach(ExpPortName port, ExpPinName pin, Callback<void(uint32_t,gpio_irq_event)> func, uint32_t id)
-  {
-  	return ExpError_NOTINITIALIZED;
-  };
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 
 	/** Get state of attachment of pin at port
 	 *
@@ -265,9 +267,9 @@ public:
    *  @return				Typedef Enum of ExpPortWidth
    */
 	virtual ExpError detach(ExpPortName port, ExpPinName pin)
-  {
-    return ExpError_NOTINITIALIZED;
-  };
+	{
+		return ExpError_NOTINITIALIZED;
+	};
 };
 
-#endif  /* EXPANDERINTERFACE_H */
+#endif  /* MBED_EXPANSIONINTERFACE_H */

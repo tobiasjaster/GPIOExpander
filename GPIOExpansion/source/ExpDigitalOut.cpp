@@ -14,119 +14,103 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ExpDigitalIn.h"
+#include "ExpDigitalOut.h"
 
-#if DEVICE_EXPANDER
+#if DEVICE_EXPANSION
 
-ExpDigitalIn::ExpDigitalIn(ExpanderInterface *exp, ExpPortName port, ExpPinName pin) {
+ExpDigitalOut::ExpDigitalOut(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin) {
 	_exp = exp;
 	_port = port;
 	_pin = pin;
 	_isConnected = false;
 	if (_checkAttachment() == false && _setDirection(INPUT)) {
 		_isConnected = _setAttachment();
-		_setMode(PullNone);
 	}
 }
 
-ExpDigitalIn::ExpDigitalIn(ExpanderInterface *exp, ExpPortName port, ExpPinName pin, PinMode mode) {
+ExpDigitalOut::ExpDigitalOut(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin, int value) {
 	_exp = exp;
 	_port = port;
 	_pin = pin;
 	_isConnected = false;
 	if (_checkAttachment() == false && _setDirection(INPUT)) {
 		_isConnected = _setAttachment();
-		_setMode(mode);
+		write(value);
 	}
 }
 
-ExpDigitalIn::~ExpDigitalIn(){
+ExpDigitalOut::~ExpDigitalOut() {
 	if (_isConnected && _resetAttachment()){
-		_setMode(PullNone);
+		_setDirection(OUTPUT);
 	}
 }
-int ExpDigitalIn::read(void) {
+
+void ExpDigitalOut::write(int value) {
+	int value_new;
+	int value_old;
+	int pinposition = 1 << (char)_pin;
+	int pinvalue = value << (char)_pin;
+	_exp->read(_port, &value_old);
+	value_new = (value_old & ~pinposition) | pinvalue;
+	if (value_new != value_old){
+		_exp->write(_port, value_new);
+	}
+}
+
+int ExpDigitalOut::read(void) {
 	int value;
 	int pinposition = 1 << (char)_pin;
 	_exp->read(_port, &value);
 	return (int)((value&pinposition) >> (char)_pin);
 }
 
-void ExpDigitalIn::mode(PinMode pull) {
-	if (_isConnected) {
-		_setMode(pull);
-	}
-}
-
-int ExpDigitalIn::is_connected() {
+int ExpDigitalOut::is_connected() {
 	return (int)_isConnected;
 }
 
+ExpDigitalOut &ExpDigitalOut::operator= (int value) {
+    write(value);
+    return *this;
+}
 
-ExpDigitalIn::operator int()
+ExpDigitalOut &ExpDigitalOut::operator= (ExpDigitalOut &rhs) {
+    write(rhs.read());
+    return *this;
+}
+
+ExpDigitalOut::operator int()
 {
     // Underlying call is atomic
     return read();
 }
 
-bool ExpDigitalIn::_checkAttachment(void) {
+bool ExpDigitalOut::_checkAttachment(void) {
 	return _exp->isAttached(_port, _pin);
 }
 
-bool ExpDigitalIn::_setAttachment(void){
+bool ExpDigitalOut::_setAttachment(void){
 	_exp->attach(_port, _pin, NULL, 0);
 	return true;
 }
 
-bool ExpDigitalIn::_resetAttachment(void){
+bool ExpDigitalOut::_resetAttachment(void){
 	_exp->detach(_port, _pin);
 	return true;
 }
 
-bool ExpDigitalIn::_setDirection(ExpDigitalDirection direction){
-	int pinposition = 1 << (char)_pin;
-	_exp->write(_port,0);
+bool ExpDigitalOut::_setDirection(ExpDigitalDirection direction){
+	write(0);
 	int direction_new;
 	int direction_old;
+	int pinposition = 1 << (char)_pin;
+	int pinvalue = (int)direction << (char)_pin;
 	_exp->getDirection(_port, &direction_old);
-	if (direction == INPUT){
-		direction_new = direction_old | pinposition;
-	}
-	else{
-		direction_new = direction_old & ~pinposition;
-	}
+	direction_new = (direction_old & ~pinposition) | pinvalue;
 	if (direction_new != direction_old){
 		_exp->setDirection(_port, direction_new);
 	}
 	_exp->getDirection(_port, &direction_old);
-	if (direction_new != direction_old){
-		return false;
-	}
-	return true;
-}
-
-bool ExpDigitalIn::_setMode(PinMode mode){
-	if (mode != PullNone && mode !=PullUp){
-		return false;
-	}
-	int pinposition = 0x01 << (char)_pin;
-	int pinmode_old;
-	int pinmode_new;
-	_exp->getConfigurePullUps(_port, &pinmode_old);
-	if (mode == PullNone) {
-		pinmode_new = pinmode_old & ~pinposition;
-	}
-	else {
-		pinmode_new = pinmode_old | pinposition;
-	}
-	if (pinmode_new != pinmode_old) {
-		_exp->setConfigurePullUps(_port, pinmode_new);
-	}
-	_exp->getConfigurePullUps(_port, &pinmode_old);
-	if (pinmode_new != pinmode_old) {
-		return false;
-	}
-	return true;
+	return (direction_new != direction_old) ? false : true;
 }
 
 #endif

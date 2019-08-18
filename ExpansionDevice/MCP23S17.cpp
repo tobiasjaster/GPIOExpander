@@ -17,7 +17,7 @@
  */
 #include "mbed.h"
 #include "mbed_error.h"
-#include "GPIOExpander/MCP23S17.h"
+#include "MCP23S17.h"
 
 MCP23S17::MCP23S17(PinName mosi,
 		PinName miso,
@@ -30,7 +30,7 @@ MCP23S17::MCP23S17(PinName mosi,
 	_config.portWidth = pw;
 	_config.opcode = writeOpcode;
 	_config.interrupt = interrupt;
-	_spi = new SPI(mosi, miso, sclk);
+	_spi = new mbed::SPI(mosi, miso, sclk);
 	_spi->frequency(400000);
 	_spi->format(8,0);
 //	_writeOpcode = writeOpcode;
@@ -38,7 +38,7 @@ MCP23S17::MCP23S17(PinName mosi,
     _init();
 }
 
-MCP23S17::MCP23S17(SPI* spi,
+MCP23S17::MCP23S17(mbed::SPI* spi,
 		PinName cs,
 		char writeOpcode,
 		PinName interrupt,
@@ -196,13 +196,16 @@ ExpError MCP23S17::setDirection(ExpPortName port, int directionMask) {
 	return ExpError_OK;
 }
 
-ExpError MCP23S17::getConfigurePullUps(ExpPortName port, int *data) {
+ExpError MCP23S17::getConfigureMode(ExpPortName port, PinMode mode, int *data) {
+	if (mode != PullUp) {
+		return ExpError_MASK;
+	}
 	*data = (int)_read(GPPU | (char)port);
 	return ExpError_OK;
 }
 
-ExpError MCP23S17::setConfigurePullUps(ExpPortName port, int pullupMask) {
-	if (pullupMask > 0xFF) {
+ExpError MCP23S17::setConfigureMode(ExpPortName port, PinMode mode, int pullupMask) {
+	if (pullupMask > 0xFF || mode != PullUp) {
 		return ExpError_MASK;
 	}
     _write(GPPU | (char)port, (char)pullupMask);

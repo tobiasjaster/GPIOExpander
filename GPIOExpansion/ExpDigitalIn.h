@@ -18,12 +18,10 @@
 #define MBED_EXPDIGITALIN_H
 
 #include "mbed.h"
-#include "ExpanderInterface.h"
+#include "DigitalInInterface.h"
+#include "GPIOExpansionInterface.h"
 
-#if DEVICE_EXPANDER || defined(DOXYGEN_ONLY)
-
-namespace mbed {
-/** \addtogroup drivers */
+#if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
 
 /** An external digital input, used for reading the state of a pin
  *
@@ -31,7 +29,7 @@ namespace mbed {
  *
  */
 
-class ExpDigitalIn {
+class ExpDigitalIn : public DigitalInInterface{
 
 public:
     /** Create an ExpDigitalIn connected to the specified pin
@@ -40,7 +38,7 @@ public:
      *  @param port ExpDigitalIn port to connect to
      *  @param pin 	ExpDigitalIn pin to connect to
      */
-	ExpDigitalIn(ExpanderInterface *exp, ExpPortName port, ExpPinName pin);
+	ExpDigitalIn(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin);
 
     /** Create an ExpDigitalIn connected to the specified pin
      *
@@ -49,7 +47,7 @@ public:
      *  @param pin 	ExpDigitalIn pin to connect to
      *  @param mode the initial mode of the pin
      */
-	ExpDigitalIn(ExpanderInterface *exp, ExpPortName port, ExpPinName pin, PinMode mode);
+	ExpDigitalIn(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin, PinMode mode);
 
 	~ExpDigitalIn();
     /** Read the input, represented as 0 or 1 (int)
@@ -93,13 +91,11 @@ protected:
     bool _setDirection(ExpDigitalDirection direction);
     bool _setMode(PinMode mode);
     bool _isConnected;
-    ExpanderInterface *_exp;
+    GPIOExpansionInterface *_exp;
 	ExpPortName _port;
 	ExpPinName _pin;
 #endif
 };
-
-} // namespace mbed
 
 #endif
 

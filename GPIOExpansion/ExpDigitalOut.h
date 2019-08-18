@@ -18,19 +18,17 @@
 #define EXPDIGITALOUT_H
 
 #include "mbed.h"
-#include "ExpanderInterface.h"
+#include "DigitalOutInterface.h"
+#include "GPIOExpansionInterface.h"
 
-#if DEVICE_EXPANDER || defined(DOXYGEN_ONLY)
-
-namespace mbed {
-/** \addtogroup drivers */
+#if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
 
 /** An external digital output, used for setting the state of a pin
  *
  * @note Synchronization level: Interrupt safe
  *
  */
-class ExpDigitalOut {
+class ExpDigitalOut : public DigitalOutInterface{
 
 public:
     /** Create a ExpDigitalOut connected to the specified pin
@@ -39,7 +37,7 @@ public:
 		 *  @param port ExpDigitalOut port to connect to
 		 *  @param pin 	ExpDigitalOut pin to connect to
      */
-	ExpDigitalOut(ExpanderInterface *exp, ExpPortName port, ExpPinName pin);
+	ExpDigitalOut(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin);
 
 	  /** Create a ExpDigitalOut connected to the specified pin
 	   *
@@ -48,7 +46,7 @@ public:
 		 *  @param pin 	ExpDigitalOut pin to connect to
 		 *  @param mode the initial mode of the pin
 	   */
-	ExpDigitalOut(ExpanderInterface *exp, ExpPortName port, ExpPinName pin, int value);
+	ExpDigitalOut(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin, int value);
 
 	~ExpDigitalOut();
     /** Set the output, specified as 0 or 1 (int)
@@ -107,13 +105,11 @@ protected:
     bool _resetAttachment(void);
     bool _setDirection(ExpDigitalDirection direction);
     bool _isConnected;
-    ExpanderInterface *_exp;
+    GPIOExpansionInterface *_exp;
 	ExpPortName _port;
 	ExpPinName _pin;
 #endif
 };
-
-} // namespace mbed
 
 #endif
 

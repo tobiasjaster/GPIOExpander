@@ -16,9 +16,9 @@
  */
 #include "ExpPortIn.h"
 
-#if DEVICE_EXPANDER
+#if DEVICE_EXPANSION
 
-ExpPortIn::ExpPortIn(ExpanderInterface *exp, ExpPortName port, int mask) {
+ExpPortIn::ExpPortIn(GPIOExpansionInterface *exp, ExpPortName port, int mask) {
 	_exp = exp;
 	_port = port;
 	_mask = mask;
@@ -113,17 +113,12 @@ bool ExpPortIn::_setMode(PinMode mode){
 	}
 	int pinmode_old;
 	int pinmode_new;
-	_exp->getConfigurePullUps(_port, &pinmode_old);
-	if (mode == PullNone) {
-		pinmode_new = pinmode_old & ~_mask;
-	}
-	else {
-		pinmode_new = pinmode_old | _mask;
-	}
+	_exp->getConfigureMode(_port, mode, &pinmode_old);
+	pinmode_new = (mode == PullNone) ? (pinmode_old & ~_mask) : (pinmode_old | _mask);
 	if (pinmode_new != pinmode_old) {
-		_exp->setConfigurePullUps(_port, pinmode_new);
+		_exp->setConfigureMode(_port, mode, pinmode_new);
 	}
-	_exp->getConfigurePullUps(_port, &pinmode_old);
+	_exp->getConfigureMode(_port, mode, &pinmode_old);
 	if (pinmode_new != pinmode_old) {
 		return false;
 	}

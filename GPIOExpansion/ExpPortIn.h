@@ -14,57 +14,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef EXPPORTOUT_H
-#define EXPPORTOUT_H
+#ifndef EXPPORTIN_H
+#define EXPPORTIN_H
 
 #include "mbed.h"
-#include "ExpanderInterface.h"
+#include "PortInInterface.h"
+#include "GPIOExpansionInterface.h"
 
-#if DEVICE_EXPANDER || defined(DOXYGEN_ONLY)
+#if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
 
-namespace mbed {
-/** \addtogroup drivers */
-/** A multiple pin digital output
+/** An external multiple pin digital input
  *
  * @note Synchronization level: Interrupt safe
  */
-class ExpPortOut {
+class ExpPortIn : public PortInInterface{
 public:
 
-     /** Create an ExpPortOut connected to the specified pin
- 		 *
- 		 *  @param exp 	ExpansionInterface which controls the external pin
- 		 *  @param port ExpPortOut port to connect to
+	  /** Create an ExpPortIn connected to the specified pin
+		 *
+		 *  @param exp 	ExpansionInterface which controls the external pin
+		 *  @param port ExpPortIn port to connect to
      *  @param mask Bitmask defines which port pins should be an input (0 - ignore, 1 - include)
- 		 */
-    ExpPortOut(ExpanderInterface *exp, ExpPortName port, int mask = 0xFFFFFFFF);
+		 */
+	ExpPortIn(GPIOExpansionInterface *exp, ExpPortName port, int mask = 0xFFFFFFFF);
 
-    ~ExpPortOut();
-    /** Write the value to the output port
-     *
-     *  @param value An integer specifying a bit to write for every corresponding ExpPortOut pin
-     */
-    void write(int value);
-
-    /** Read the value currently output on the port
+	~ExpPortIn();
+    /** Read the value input to the port
      *
      *  @returns
-     *    An integer with each bit corresponding to associated pin value
+     *    An integer with each bit corresponding to the associated pin value
      */
     int read();
 
-    /** A shorthand for write()
-     * \sa ExpPortOut::write()
+    /** Set the input pin mode
+     *
+     *  @param mode PullUp, PullDown, PullNone, OpenDrain
      */
-    ExpPortOut &operator= (int value);
+    void mode(PinMode mode);
 
     /** A shorthand for read()
-     * \sa ExpPortOut::read()
-     */
-    ExpPortOut &operator= (ExpPortOut &rhs);
-
-    /** A shorthand for read()
-     * \sa ExpPortOut::read()
      */
     operator int();
 
@@ -74,14 +62,13 @@ protected:
     bool _setAttachment(void);
     bool _resetAttachment(void);
     bool _setDirection(ExpDigitalDirection direction);
-    ExpanderInterface *_exp;
+    bool _setMode(PinMode mode);
+    GPIOExpansionInterface *_exp;
     ExpPortName _port;
     int _mask;
     bool _isConnected;
 #endif
 };
-
-} // namespace mbed
 
 #endif
 

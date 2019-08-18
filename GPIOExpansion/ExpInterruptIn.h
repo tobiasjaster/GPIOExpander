@@ -18,18 +18,18 @@
 #define EXPINTERRUPTIN_H
 
 #include "mbed.h"
-#include "ExpanderInterface.h"
+#include "InterruptInInterface.h"
+#include "GPIOExpansionInterface.h"
 
-#if DEVICE_EXPANDER || defined(DOXYGEN_ONLY)
+#if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
 
 namespace mbed {
-/** \addtogroup drivers */
 
 /** An external digital interrupt input, used to call a function on a rising or falling edge
  *
  * @note Synchronization level: Interrupt safe
  */
-class ExpInterruptIn : private NonCopyable<ExpInterruptIn> {
+class ExpInterruptIn : InterruptInInterface {
 
 public:
 
@@ -39,7 +39,7 @@ public:
 		 *  @param port ExpInterruptIn port to connect to
 		 *  @param pin 	ExpInterruptIn pin to connect to
      */
-	ExpInterruptIn(ExpanderInterface *exp, ExpPortName port, ExpPinName pin);
+	ExpInterruptIn(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin);
 
 	  /** Create an ExpInterruptIn connected to the specified pin
 	   *
@@ -48,7 +48,7 @@ public:
 		 *  @param pin 	ExpInterruptIn pin to connect to
 		 *  @param mode the initial mode of the pin
 	   */
-	ExpInterruptIn(ExpanderInterface *exp, ExpPortName port, ExpPinName pin, PinMode mode);
+	ExpInterruptIn(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin, PinMode mode);
 
     virtual ~ExpInterruptIn();
 
@@ -141,7 +141,7 @@ protected:
     bool _setInterrupt(void);
     bool _isConnected;
     bool _irqEnabled;
-    ExpanderInterface *_exp;
+    GPIOExpansionInterface *_exp;
 	ExpPortName _port;
 	ExpPinName _pin;
 	Callback<void()> _rise;

@@ -16,9 +16,9 @@
  */
 #include "ExpInterruptIn.h"
 
-#if DEVICE_EXPANDER
+#if DEVICE_EXPANSION
 
-ExpInterruptIn::ExpInterruptIn(ExpanderInterface *exp, ExpPortName port, ExpPinName pin) {
+ExpInterruptIn::ExpInterruptIn(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin) {
 	_exp = exp;
 	_port = port;
 	_pin = pin;
@@ -31,7 +31,7 @@ ExpInterruptIn::ExpInterruptIn(ExpanderInterface *exp, ExpPortName port, ExpPinN
 	}
 }
 
-ExpInterruptIn::ExpInterruptIn(ExpanderInterface *exp, ExpPortName port, ExpPinName pin, PinMode mode) {
+ExpInterruptIn::ExpInterruptIn(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin, PinMode mode) {
 	_exp = exp;
 	_port = port;
 	_pin = pin;
@@ -198,23 +198,20 @@ bool ExpInterruptIn::_setDirection(ExpDigitalDirection direction) {
 }
 
 bool ExpInterruptIn::_setMode(PinMode mode){
-	if (mode != PullNone && mode !=PullUp){
-		return false;
-	}
+//	if (mode != PullNone && mode !=PullUp){
+//		return false;
+//	}
 	int pinposition = 0x01 << (char)_pin;
 	int pinmode_old;
 	int pinmode_new;
-	_exp->getConfigurePullUps(_port, &pinmode_old);
-	if (mode == PullNone) {
-		pinmode_new = pinmode_old & ~pinposition;
-	}
-	else {
-		pinmode_new = pinmode_old | pinposition;
-	}
+	int mask;
+	_exp->getConfigureMode(_port, mode, &pinmode_old);
+	mask = (mode != PullNone) ? 0xFFFFFFFF : 0;
+	pinmode_new = (pinmode_old & ~pinposition) | (mask | pinposition);
 	if (pinmode_new != pinmode_old) {
-		_exp->setConfigurePullUps(_port, pinmode_new);
+		_exp->setConfigureMode(_port, mode, pinmode_new);
 	}
-	_exp->getConfigurePullUps(_port, &pinmode_old);
+	_exp->getConfigureMode(_port, mode, &pinmode_old);
 	if (pinmode_new != pinmode_old) {
 		return false;
 	}

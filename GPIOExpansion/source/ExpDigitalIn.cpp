@@ -14,97 +14,78 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ExpDigitalOut.h"
+#include "ExpDigitalIn.h"
 
-#if DEVICE_EXPANDER
+#if DEVICE_EXPANSION
 
-ExpDigitalOut::ExpDigitalOut(ExpanderInterface *exp, ExpPortName port, ExpPinName pin) {
+ExpDigitalIn::ExpDigitalIn(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin) {
 	_exp = exp;
 	_port = port;
 	_pin = pin;
 	_isConnected = false;
 	if (_checkAttachment() == false && _setDirection(INPUT)) {
 		_isConnected = _setAttachment();
+		_setMode(PullNone);
 	}
 }
 
-ExpDigitalOut::ExpDigitalOut(ExpanderInterface *exp, ExpPortName port, ExpPinName pin, int value) {
+ExpDigitalIn::ExpDigitalIn(GPIOExpansionInterface *exp, ExpPortName port, ExpPinName pin, PinMode mode) {
 	_exp = exp;
 	_port = port;
 	_pin = pin;
 	_isConnected = false;
 	if (_checkAttachment() == false && _setDirection(INPUT)) {
 		_isConnected = _setAttachment();
-		write(value);
+		_setMode(mode);
 	}
 }
 
-ExpDigitalOut::~ExpDigitalOut() {
+ExpDigitalIn::~ExpDigitalIn(){
 	if (_isConnected && _resetAttachment()){
-		_setDirection(OUTPUT);
+		_setMode(PullNone);
 	}
 }
-
-void ExpDigitalOut::write(int value) {
-	int value_new;
-	int value_old;
-	int pinposition = 1 << (char)_pin;
-	_exp->read(_port, &value_old);
-	if (value == 0){
-		value_new = value_old & ~pinposition;
-	}
-	else if (value == 1){
-		value_new = value_old | pinposition;
-	}
-	if (value_new != value_old){
-		_exp->write(_port, value_new);
-	}
-}
-
-int ExpDigitalOut::read(void) {
+int ExpDigitalIn::read(void) {
 	int value;
 	int pinposition = 1 << (char)_pin;
 	_exp->read(_port, &value);
 	return (int)((value&pinposition) >> (char)_pin);
 }
 
-int ExpDigitalOut::is_connected() {
+void ExpDigitalIn::mode(PinMode pull) {
+	if (_isConnected) {
+		_setMode(pull);
+	}
+}
+
+int ExpDigitalIn::is_connected() {
 	return (int)_isConnected;
 }
 
-ExpDigitalOut &ExpDigitalOut::operator= (int value) {
-    write(value);
-    return *this;
-}
 
-ExpDigitalOut &ExpDigitalOut::operator= (ExpDigitalOut &rhs) {
-    write(rhs.read());
-    return *this;
-}
-
-ExpDigitalOut::operator int()
+ExpDigitalIn::operator int()
 {
     // Underlying call is atomic
     return read();
 }
 
-bool ExpDigitalOut::_checkAttachment(void) {
+bool ExpDigitalIn::_checkAttachment(void) {
 	return _exp->isAttached(_port, _pin);
 }
 
-bool ExpDigitalOut::_setAttachment(void){
+bool ExpDigitalIn::_setAttachment(void){
 	_exp->attach(_port, _pin, NULL, 0);
 	return true;
 }
 
-bool ExpDigitalOut::_resetAttachment(void){
+bool ExpDigitalIn::_resetAttachment(void){
 	_exp->detach(_port, _pin);
 	return true;
 }
 
-bool ExpDigitalOut::_setDirection(ExpDigitalDirection direction){
-	char pinposition = 1 << (char)_pin;
-	write(0);
+bool ExpDigitalIn::_setDirection(ExpDigitalDirection direction){
+	int pinposition = 1 << (char)_pin;
+	_exp->write(_port,0);
 	int direction_new;
 	int direction_old;
 	_exp->getDirection(_port, &direction_old);
@@ -122,6 +103,24 @@ bool ExpDigitalOut::_setDirection(ExpDigitalDirection direction){
 		return false;
 	}
 	return true;
+}
+
+bool ExpDigitalIn::_setMode(PinMode mode){
+//	if (mode != PullNone && mode !=PullUp){
+//		return false;
+//	}
+	int pinmode_old;
+	int pinmode_new;
+	int pinposition = 0x01 << (char)_pin;
+	int mask;
+	_exp->getConfigureMode(_port, mode, &pinmode_old);
+	mask = (mode != PullNone) ? 0xFFFFFFFF : 0;
+	pinmode_new = (pinmode_old & ~pinposition) | (mask | pinposition);
+	if (pinmode_new != pinmode_old) {
+		_exp->setConfigureMode(_port, mode, pinmode_new);
+	}
+	_exp->getConfigureMode(_port, mode, &pinmode_old);
+	return (pinmode_new != pinmode_old) ? false: true;
 }
 
 #endif
