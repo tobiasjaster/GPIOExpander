@@ -18,7 +18,6 @@
 #define EXPPORTIN_H
 
 #include "mbed.h"
-#include "PortInInterface.h"
 #include "GPIOExpansionInterface.h"
 
 #if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
@@ -27,7 +26,7 @@
  *
  * @note Synchronization level: Interrupt safe
  */
-class ExpPortIn : public PortInInterface{
+class ExpPortIn {
 public:
 
 	  /** Create an ExpPortIn connected to the specified pin

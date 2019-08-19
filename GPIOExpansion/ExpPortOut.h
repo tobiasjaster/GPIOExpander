@@ -18,7 +18,6 @@
 #define EXPPORTOUT_H
 
 #include "mbed.h"
-#include "PortOutInterface.h"
 #include "GPIOExpansionInterface.h"
 
 #if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
@@ -27,7 +26,7 @@
  *
  * @note Synchronization level: Interrupt safe
  */
-class ExpPortOut : public PortOutInterface{
+class ExpPortOut {
 public:
 
      /** Create an ExpPortOut connected to the specified pin

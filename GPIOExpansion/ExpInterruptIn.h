@@ -18,7 +18,6 @@
 #define EXPINTERRUPTIN_H
 
 #include "mbed.h"
-#include "InterruptInInterface.h"
 #include "GPIOExpansionInterface.h"
 
 #if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
@@ -29,7 +28,7 @@ namespace mbed {
  *
  * @note Synchronization level: Interrupt safe
  */
-class ExpInterruptIn : InterruptInInterface {
+class ExpInterruptIn {
 
 public:
 

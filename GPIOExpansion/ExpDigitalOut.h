@@ -18,7 +18,6 @@
 #define EXPDIGITALOUT_H
 
 #include "mbed.h"
-#include "DigitalOutInterface.h"
 #include "GPIOExpansionInterface.h"
 
 #if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
@@ -28,7 +27,7 @@
  * @note Synchronization level: Interrupt safe
  *
  */
-class ExpDigitalOut : public DigitalOutInterface{
+class ExpDigitalOut {
 
 public:
     /** Create a ExpDigitalOut connected to the specified pin

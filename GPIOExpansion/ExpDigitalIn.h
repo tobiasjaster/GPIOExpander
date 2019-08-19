@@ -18,7 +18,6 @@
 #define MBED_EXPDIGITALIN_H
 
 #include "mbed.h"
-#include "DigitalInInterface.h"
 #include "GPIOExpansionInterface.h"
 
 #if DEVICE_EXPANSION || defined(DOXYGEN_ONLY)
@@ -29,7 +28,7 @@
  *
  */
 
-class ExpDigitalIn : public DigitalInInterface{
+class ExpDigitalIn {
 
 public:
     /** Create an ExpDigitalIn connected to the specified pin
